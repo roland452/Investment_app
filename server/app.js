@@ -8,6 +8,7 @@ const userRoutes = require('./routes/user');
 const walletRoutes = require('./routes/wallet');
 const chatRoutes = require('./routes/chat');
 const adminChatRoutes = require('./routes/adminChat');
+const adminBalanceRoutes = require('./routes/adminBalance');
 
 
 
@@ -25,6 +26,7 @@ app.use('/api/auth', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin/chat', adminChatRoutes);
+app.use('/api/admin/balance', adminBalanceRoutes);
 
 app.get('/', (req, res) => res.send('API running'));
 
