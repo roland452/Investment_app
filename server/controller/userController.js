@@ -1,5 +1,11 @@
 const pool = require('../db');
 
+await pool.query(
+  `UPDATE transactions SET status = 'success'
+   WHERE user_id = $1 AND type = 'withdrawal' AND status = 'pending' AND available_at <= NOW()`,
+  [req.userId]
+);
+
 exports.getDashboard = async (req, res) => {
   try {
     const userResult = await pool.query(

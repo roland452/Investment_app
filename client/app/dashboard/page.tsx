@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link"
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Wallet,
@@ -13,6 +13,7 @@ import {
 import api from "@/lib/api";
 import { useAuth } from "@/context/authContext";
 import TopUpModal from "@/components/topUpModal";
+import WithdrawModal from "@/components/WithdrawModal";
 
 interface Investment {
   id: number;
@@ -36,29 +37,29 @@ export default function DashboardPage() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showTopUp, setShowTopUp] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-useEffect(() => {
-  api
-    .get('/user/dashboard')
-    .then(({ data }) => {
-      setBalance(data.user.balance);
-      setInvestments(data.investments);
-      setTransactions(data.transactions);
-      setLoading(false);
-    })
-    .catch((err) => {
-      setError(
-        `Status: ${err.response?.status || 'no response'} — ${
-          err.response?.data?.error || err.message
-        }`
-      );
-      setLoading(false);
-    });
-}, []);
+  useEffect(() => {
+    api
+      .get("/user/dashboard")
+      .then(({ data }) => {
+        setBalance(data.user.balance);
+        setInvestments(data.investments);
+        setTransactions(data.transactions);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(
+          `Status: ${err.response?.status || "no response"} — ${
+            err.response?.data?.error || err.message
+          }`,
+        );
+        setLoading(false);
+      });
+  }, []);
 
-  
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto py-20 text-center text-white/50">
@@ -68,11 +69,11 @@ useEffect(() => {
   }
 
   if (error) {
-  return (
-    <div className="max-w-5xl mx-auto py-20 text-center text-red-400">
-      {error}
-    </div>
-  );
+    return (
+      <div className="max-w-5xl mx-auto py-20 text-center text-red-400">
+        {error}
+      </div>
+    );
   }
 
   return (
@@ -110,6 +111,15 @@ useEffect(() => {
           <Plus size={18} /> Top Up
         </motion.button>
       </motion.div>
+
+      <motion.button
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        onClick={() => setShowWithdraw(true)}
+        className="bg-white/10 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2"
+      >
+        <ArrowUpRight size={18} /> Withdraw
+      </motion.button>
 
       {/* Investments */}
       <div>
@@ -157,11 +167,8 @@ useEffect(() => {
       {/* Transactions */}
       <div>
         <div className="flex items-center justify-between w-full">
-          <h2 className="text-lg font-semibold mb-4">Recent     Transactions
-          </h2>
-          {transactions.length > 0 && (
-            <Link href="/transactions">see all</Link>
-          )}
+          <h2 className="text-lg font-semibold mb-4">Recent Transactions</h2>
+          {transactions.length > 0 && <Link href="/transactions">see all</Link>}
         </div>
         {transactions.length === 0 ? (
           <p className="text-white/40 text-sm bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
@@ -209,6 +216,19 @@ useEffect(() => {
         open={showTopUp}
         onClose={() => setShowTopUp(false)}
         onSuccess={(newBalance) => setBalance(newBalance)}
+      />
+
+      <WithdrawModal
+        open={showWithdraw}
+        onClose={() => setShowWithdraw(false)}
+        onSuccess={() => {
+          // refetch dashboard so balance + new pending transaction show immediately
+          api.get("/user/dashboard").then(({ data }) => {
+            setBalance(data.user.balance);
+            setInvestments(data.investments);
+            setTransactions(data.transactions);
+          });
+        }}
       />
     </div>
   );

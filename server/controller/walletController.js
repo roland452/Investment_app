@@ -1,6 +1,9 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const pool = require('../db');
+const { autoEnrollTesla } = require('../lib/autoEnroll');
+// ...inside the try block, after the UPDATE users SET balance...
+await autoEnrollTesla(client, user_id);
 
 const BTCPAY_URL = (process.env.BTCPAY_URL || '').replace(/\/$/, '');
 const STORE_ID = process.env.BTCPAY_STORE_ID;

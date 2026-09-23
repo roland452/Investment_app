@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const { initTopup, verifyTopup, webhook } = require('../controller/walletController');
+const { requestWithdrawal } = require('../controller/withdrawalController');
 
+
+router.post('/withdraw', auth, requestWithdrawal);
 router.post('/topup/init', auth, initTopup);
 router.post('/topup/verify', auth, verifyTopup);
 

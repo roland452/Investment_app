@@ -45,3 +45,4 @@ CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id);
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS available_at TIMESTAMP;
