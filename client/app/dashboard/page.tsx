@@ -79,7 +79,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-white/50 text-sm">Wallet Balance</p>
-            <p className="text-3xl font-bold">₦{balance.toLocaleString()}</p>
+            <p className="text-3xl font-bold">${balance.toLocaleString()}</p>
           </div>
         </div>
         <motion.button

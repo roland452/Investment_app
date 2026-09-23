@@ -6,11 +6,12 @@ function setAuthCookie(res, userId) {
   const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
   res.cookie('token', token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     secure: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
+
 
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -26,8 +27,8 @@ exports.signup = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const { rows } = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, balance',
-      [name, email, hashed]
+      'INSERT INTO users (name, email, password, balance) VALUES ($1, $2, $3, $4) RETURNING id, name, email, balance',
+      [name, email, hashed, 100] // $100 signup bonus
     );
     const user = rows[0];
 
@@ -38,6 +39,8 @@ exports.signup = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -65,19 +68,6 @@ exports.logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
-/*exports.me = async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      'SELECT id, name, email, phone, balance, verified, created_at FROM users WHERE id = $1',
-      [req.userId]
-    );
-    if (!rows[0]) return res.status(404).json({ error: 'User not found' });
-    res.json(rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-};*/
 
 
 exports.me = async (req, res) => {

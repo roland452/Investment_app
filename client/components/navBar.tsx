@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, User, LayoutDashboard, LogIn, LogOut, Menu, X, MessageCircle } from 'lucide-react';
 import { useAuth } from "@/context/authContext";
+import Logo from './logo'
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -51,9 +52,8 @@ export default function Navbar() {
   
   return (
     <nav className="w-full bg-black text-white px-4 py-3 flex items-center justify-between relative z-50">
-      <Link href="/" className="text-xl font-bold text-orange-500">
-        AfroGrowth
-      </Link>
+      
+      <Logo />
 
       {/* Desktop nav */}
       <div className="hidden md:flex items-center gap-6">
