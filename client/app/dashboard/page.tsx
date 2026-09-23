@@ -156,7 +156,7 @@ useEffect(() => {
 
       {/* Transactions */}
       <div>
-        <div className="flex items-center justify-baseline">
+        <div className="flex items-center justify-baseline w-full">
           <h2 className="text-lg font-semibold mb-4">Recent     Transactions
           </h2>
           {transactions.length > 0 && (
