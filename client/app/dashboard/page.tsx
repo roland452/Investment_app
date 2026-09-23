@@ -13,7 +13,7 @@ import {
 import api from "@/lib/api";
 import { useAuth } from "@/context/authContext";
 import TopUpModal from "@/components/topUpModal";
-import WithdrawModal from "@/components/WithdrawModal";
+import WithdrawModal from "@/components/withdrawalModal";
 
 interface Investment {
   id: number;
