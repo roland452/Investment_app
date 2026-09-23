@@ -1,13 +1,13 @@
 const pool = require('../db');
 
-await pool.query(
-  `UPDATE transactions SET status = 'success'
-   WHERE user_id = $1 AND type = 'withdrawal' AND status = 'pending' AND available_at <= NOW()`,
-  [req.userId]
-);
-
 exports.getDashboard = async (req, res) => {
   try {
+    await pool.query(
+      `UPDATE transactions SET status = 'success'
+       WHERE user_id = $1 AND type = 'withdrawal' AND status = 'pending' AND available_at <= NOW()`,
+      [req.userId]
+    );
+
     const userResult = await pool.query(
       'SELECT id, name, balance FROM users WHERE id = $1',
       [req.userId]
@@ -60,9 +60,14 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-
 exports.getTransactions = async (req, res) => {
   try {
+    await pool.query(
+      `UPDATE transactions SET status = 'success'
+       WHERE user_id = $1 AND type = 'withdrawal' AND status = 'pending' AND available_at <= NOW()`,
+      [req.userId]
+    );
+
     const { rows } = await pool.query(
       'SELECT id, reference, type, amount, status, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC',
       [req.userId]
