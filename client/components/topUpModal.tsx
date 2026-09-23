@@ -6,8 +6,20 @@ import api from '@/lib/api';
 
 declare global {
   interface Window {
-    FlutterwaveCheckout: any;
+    btcpay: any;
   }
+}
+
+// Loads BTCPay's modal script from your BTCPay server (once)
+function loadBtcpayScript(baseUrl: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.btcpay) return resolve();
+    const s = document.createElement('script');
+    s.src = `${baseUrl}/modal/btcpay.js`;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Could not load payment window'));
+    document.body.appendChild(s);
+  });
 }
 
 export default function TopUpModal({
@@ -22,13 +34,15 @@ export default function TopUpModal({
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   const handleTopUp = async () => {
     setError('');
+    setInfo('');
     const numericAmount = Number(amount);
 
-    if (!numericAmount || numericAmount < 100) {
-      setError('Enter an amount of at least ₦100');
+    if (!numericAmount || numericAmount < 10) {
+      setError('Enter an amount of at least $10');
       return;
     }
 
@@ -36,38 +50,33 @@ export default function TopUpModal({
     try {
       const { data } = await api.post('/wallet/topup/init', { amount: numericAmount });
 
-      window.FlutterwaveCheckout({
-        public_key: data.public_key,
-        tx_ref: data.reference,
-        amount: data.amount,
-        currency: 'USD',
-        payment_options: 'card, banktransfer, ussd',
-        customer: {
-          email: data.email,
-          name: data.name,
-        },
-        customizations: {
-          title: 'Wallet Top Up',
-          description: 'Add money to your wallet',
-        },
-        callback: async (response: any) => {
-          try {
-            const verifyRes = await api.post('/wallet/topup/verify', {
-              transaction_id: response.transaction_id,
-              reference: data.reference,
-            });
-            onSuccess(verifyRes.data.balance);
+      await loadBtcpayScript(data.btcpay_url);
+
+      // When the customer closes the BTCPay window, check the payment
+      window.btcpay.onModalWillLeave(async () => {
+        try {
+          const res = await api.post('/wallet/topup/verify', { reference: data.reference });
+          if (res.status === 200 && res.data.success) {
+            onSuccess(res.data.balance);
             onClose();
-          } catch {
-            setError('Payment could not be verified. Contact support if you were charged.');
+          } else {
+            // 202: paid but waiting for confirmations, or not paid yet.
+            // The webhook will credit the wallet automatically once confirmed.
+            setInfo('Waiting for payment confirmation. Your balance updates automatically once confirmed.');
           }
-        },
-        onclose: () => {
+        } catch (err: any) {
+          setError(
+            err.response?.data?.error ||
+              'Payment could not be verified. Contact support if you were charged.'
+          );
+        } finally {
           setLoading(false);
-        },
+        }
       });
+
+      window.btcpay.showInvoice(data.invoice_id);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Something went wrong');
+      setError(err.response?.data?.error || err.message || 'Something went wrong');
       setLoading(false);
     }
   };
@@ -105,11 +114,17 @@ export default function TopUpModal({
               </p>
             )}
 
+            {info && (
+              <p className="text-amber-300 text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                {info}
+              </p>
+            )}
+
             <div>
-              <label className="text-sm text-white/50 mb-1 block">Amount ($)</label>
+              <label className="text-sm text-white/50 mb-1 block">Amount ($) — pay with Bitcoin</label>
               <input
                 type="number"
-                placeholder="e.g. 5000"
+                placeholder="e.g. 50"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full p-3 bg-white/5 border border-white/10 rounded-xl outline-none focus:border-white/30 transition-colors"

@@ -18,6 +18,7 @@ app.use(cors({
   origin: [`${process.env.CLIENT_URL}`, 'http://127.0.0.1:3000'],
   credentials: true
 }));
+app.use('/api/wallet/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(cookieParser());
 
