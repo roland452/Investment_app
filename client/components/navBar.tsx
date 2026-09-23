@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, User, LayoutDashboard, LogIn, LogOut, Menu, X, MessageCircle } from 'lucide-react';
-import { useAuth } from "@/context/authContext.tsx";
+import { useAuth } from "@/context/authContext";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
