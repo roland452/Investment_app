@@ -2,9 +2,9 @@ import Script from 'next/script';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from '@/context/authContext.tsx';
+import { AuthProvider } from '@/context/authContext';
 import NavBar from '@/components/navBar'
-import Eruda from "../public/eruda.tsx";
+import Eruda from "../public/eruda";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
