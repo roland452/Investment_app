@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
-app.use('/api/auth', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin/chat', adminChatRoutes);
