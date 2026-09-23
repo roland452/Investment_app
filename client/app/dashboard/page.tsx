@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [showTopUp, setShowTopUp] = useState(false);
 
   useEffect(() => {
+    
     api
       .get("/user/dashboard")
       .then(({ data }) => {
@@ -45,7 +46,14 @@ export default function DashboardPage() {
         setTransactions(data.transactions);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error(
+          "Dashboard fetch error:",
+          err.response?.status,
+          err.response?.data,
+        );
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
