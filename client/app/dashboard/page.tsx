@@ -143,7 +143,7 @@ useEffect(() => {
                 </div>
                 <p className="font-semibold">{inv.plan_name}</p>
                 <p className="text-2xl font-bold">
-                  ₦{Number(inv.amount).toLocaleString()}
+                  ${Number(inv.amount).toLocaleString()}
                 </p>
                 <p className="text-sm text-green-400 flex items-center gap-1">
                   <TrendingUp size={14} /> +{inv.returns_percent}% returns

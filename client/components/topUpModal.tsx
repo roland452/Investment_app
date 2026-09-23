@@ -40,7 +40,7 @@ export default function TopUpModal({
         public_key: data.public_key,
         tx_ref: data.reference,
         amount: data.amount,
-        currency: 'NGN',
+        currency: 'USD',
         payment_options: 'card, banktransfer, ussd',
         customer: {
           email: data.email,
@@ -106,7 +106,7 @@ export default function TopUpModal({
             )}
 
             <div>
-              <label className="text-sm text-white/50 mb-1 block">Amount (₦)</label>
+              <label className="text-sm text-white/50 mb-1 block">Amount ($)</label>
               <input
                 type="number"
                 placeholder="e.g. 5000"

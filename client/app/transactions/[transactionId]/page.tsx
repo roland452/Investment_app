@@ -99,7 +99,7 @@ export default function TransactionDetailPage() {
               tx.type === 'deposit' ? 'text-green-400' : 'text-red-400'
             }`}
           >
-            {tx.type === 'deposit' ? '+' : '-'}₦{Number(tx.amount).toLocaleString()}
+            {tx.type === 'deposit' ? '+' : '-'}${Number(tx.amount).toLocaleString()}
           </p>
           <p className="text-white/40 text-sm capitalize mt-1">{tx.type}</p>
         </div>
