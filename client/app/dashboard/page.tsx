@@ -36,32 +36,42 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showTopUp, setShowTopUp] = useState(false);
 
-  useEffect(() => {
-    
-    api
-      .get("/user/dashboard")
-      .then(({ data }) => {
-        setBalance(data.user.balance);
-        setInvestments(data.investments);
-        setTransactions(data.transactions);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(
-          "Dashboard fetch error:",
-          err.response?.status,
-          err.response?.data,
-        );
-        setLoading(false);
-      });
-  }, []);
+  const [error, setError] = useState('');
 
+useEffect(() => {
+  api
+    .get('/user/dashboard')
+    .then(({ data }) => {
+      setBalance(data.user.balance);
+      setInvestments(data.investments);
+      setTransactions(data.transactions);
+      setLoading(false);
+    })
+    .catch((err) => {
+      setError(
+        `Status: ${err.response?.status || 'no response'} — ${
+          err.response?.data?.error || err.message
+        }`
+      );
+      setLoading(false);
+    });
+}, []);
+
+  
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto py-20 text-center text-white/50">
         Loading...
       </div>
     );
+  }
+
+  if (error) {
+  return (
+    <div className="max-w-5xl mx-auto py-20 text-center text-red-400">
+      {error}
+    </div>
+  );
   }
 
   return (
