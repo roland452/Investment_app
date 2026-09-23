@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const pool = require('./db');
+
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
@@ -28,6 +30,10 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin/chat', adminChatRoutes);
 app.use('/api/admin/balance', adminBalanceRoutes);
+
+pool.query(
+  'ALTER TABLE transactions ADD COLUMN IF NOT EXISTS invoice_id VARCHAR(100) UNIQUE'
+).catch(console.error);
 
 app.get('/', (req, res) => res.send('API running'));
 

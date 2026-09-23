@@ -20,8 +20,5 @@ ALTER TABLE transactions ADD COLUMN IF NOT EXISTS invoice_id VARCHAR(100) UNIQUE
 
 .env additions (remove the FLUTTERWAVE_* ones):
 
-BTCPAY_URL=https://your-btcpay-domain.com
-BTCPAY_STORE_ID=xxxx
-BTCPAY_API_KEY=xxxx
-BTCPAY_WEBHOOK_SECRET=xxxx
+
 */
