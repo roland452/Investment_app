@@ -15,6 +15,7 @@ interface Profile {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api
@@ -23,13 +24,25 @@ export default function ProfilePage() {
         setProfile(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Profile fetch error:', err);
+        setError(err.response?.data?.error || 'Could not load profile');
+        setLoading(false);
+      });
   }, []);
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="max-w-2xl mx-auto py-20 text-center text-white/50">
         Loading...
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 text-center text-red-400">
+        {error || 'Profile not found'}
       </div>
     );
   }
