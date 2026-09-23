@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link"
 import { motion } from "framer-motion";
 import {
   Wallet,
@@ -155,7 +156,13 @@ useEffect(() => {
 
       {/* Transactions */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Recent Transactions</h2>
+        <div className="flex items-center justify-baseline">
+          <h2 className="text-lg font-semibold mb-4">Recent     Transactions
+          </h2>
+          {transactions.length > 0 && (
+            <Link href="/transactions">see all</Link>
+          )}
+        </div>
         {transactions.length === 0 ? (
           <p className="text-white/40 text-sm bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
             No transactions yet.

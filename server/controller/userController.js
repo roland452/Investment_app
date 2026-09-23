@@ -53,3 +53,32 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, reference, type, amount, status, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC',
+      [req.userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getTransactionById = async (req, res) => {
+  const { transactionId } = req.params;
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, reference, type, amount, status, created_at FROM transactions WHERE id = $1 AND user_id = $2',
+      [transactionId, req.userId]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Transaction not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
