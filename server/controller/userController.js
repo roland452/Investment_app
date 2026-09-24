@@ -17,7 +17,7 @@ exports.getDashboard = async (req, res) => {
       [req.userId]
     );
     const transactionsResult = await pool.query(
-      'SELECT id, type, amount, status, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10',
+      'SELECT id, type, amount, status, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 5',
       [req.userId]
     );
 
@@ -60,7 +60,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-/*exports.getTransactions = async (req, res) => {
+exports.getTransactions = async (req, res) => {
   try {
     await pool.query(
       `UPDATE transactions SET status = 'success'
@@ -78,33 +78,6 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-*/
-
-
-exports.getTransactions = async (req, res) => {
-  try {
-    await pool.query(
-      `UPDATE transactions SET status = 'success'
-       WHERE user_id = $1 AND type = 'withdrawal' AND status = 'pending' AND available_at <= NOW()`,
-      [req.userId]
-    );
-
-    const { rows } = await pool.query(
-      'SELECT id, reference, type, amount, status, created_at FROM transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 5',
-      [req.userId]
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
-
-
-
-
-
-
 
 exports.getTransactionById = async (req, res) => {
   const { transactionId } = req.params;
