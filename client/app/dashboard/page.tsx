@@ -6,6 +6,10 @@ import api from '@/lib/api';
 import { useAuth } from '@/context/authContext';
 import TopUpModal from '@/components/topUpModal';
 import WithdrawModal from '@/components/withdrawalModal';
+import Loader from '@/product/loader'
+import LoginPrompt from '@/product/loginPromt'
+import ErrorState from '@/product/errorState'
+
 
 interface Investment {
   id: number;
@@ -32,10 +36,11 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [showTopUp, setShowTopUp] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [retry, setRetry] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [retry]);
 
   function fetchDashboard() {
     api
@@ -58,17 +63,19 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto py-20 text-center text-white/50">
-        Loading...
-      </div>
+      <Loader 
+        message="getting live dashboard ready"
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-5xl mx-auto py-20 text-center text-red-400">
-        {error}
-      </div>
+      <ErrorState 
+        title={"failed to fetch page"}
+        message="this may be a network error try again"
+        onRetry={() => setRetry(!retry)}
+      />
     );
   }
 

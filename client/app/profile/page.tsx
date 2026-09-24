@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 import { User, Mail, ShieldCheck, Shield, Crown, Calendar, Hash } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/authContext';
+import Loader from '@/product/loader'
+import LoginPrompt from '@/product/loginPromt'
+import ErrorState from '@/product/errorState'
 
 interface Profile {
   id: number;
@@ -19,6 +22,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retry, setRetry] = useState(false);
 
   useEffect(() => {
     api
@@ -32,21 +36,34 @@ export default function ProfilePage() {
         setError(err.response?.data?.error || 'Could not load profile');
         setLoading(false);
       });
-  }, []);
+  }, [retry]);
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto py-20 text-center text-white/50">
-        Loading...
-      </div>
+      <Loader 
+        message="getting your profile ready"
+      />
     );
   }
 
+  if (error) {
+    return (
+      <ErrorState 
+        title={"failed to fetch page"}
+        message="this may be a network error try again"
+        onRetry={() => setRetry(!retry)}
+      />
+    );
+  }
+
+  
+
   if (error || !profile) {
     return (
-      <div className="max-w-2xl mx-auto py-20 text-center text-red-400">
-        {error || 'Profile not found'}
-      </div>
+      <LoginPrompt 
+        loginHref={"/login"}
+        message="login to access profile"
+      />
     );
   }
 
