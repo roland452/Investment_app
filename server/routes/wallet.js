@@ -1,18 +1,11 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const auth = require('../middleware/auth');
 const { initTopup, verifyTopup, webhook } = require('../controller/walletController');
 const { requestWithdrawal } = require('../controller/withdrawalController');
 
-
-router.post('/withdraw', auth, requestWithdrawal);
 router.post('/topup/init', auth, initTopup);
 router.post('/topup/verify', auth, verifyTopup);
-
-// Raw body is required to verify BTCPay's signature.
-// IMPORTANT: if app.js has a global app.use(express.json()), this route
-// must be registered BEFORE it, or the body will already be parsed.
-router.post('/webhook', express.raw({ type: 'application/json' }), webhook);
+router.post('/webhook', webhook); // no auth — Flutterwave calls this directly
+router.post('/withdraw', auth, requestWithdrawal);
 
 module.exports = router;
-

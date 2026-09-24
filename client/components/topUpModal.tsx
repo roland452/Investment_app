@@ -6,20 +6,8 @@ import api from '@/lib/api';
 
 declare global {
   interface Window {
-    btcpay: any;
+    FlutterwaveCheckout: any;
   }
-}
-
-// Loads BTCPay's modal script from your BTCPay server (once)
-function loadBtcpayScript(baseUrl: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.btcpay) return resolve();
-    const s = document.createElement('script');
-    s.src = `${baseUrl}/modal/btcpay.js`;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Could not load payment window'));
-    document.body.appendChild(s);
-  });
 }
 
 export default function TopUpModal({
@@ -34,15 +22,13 @@ export default function TopUpModal({
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
 
   const handleTopUp = async () => {
     setError('');
-    setInfo('');
     const numericAmount = Number(amount);
 
-    if (!numericAmount || numericAmount < 10) {
-      setError('Enter an amount of at least $10');
+    if (!numericAmount || numericAmount < 1) {
+      setError('Enter a valid amount');
       return;
     }
 
@@ -50,33 +36,38 @@ export default function TopUpModal({
     try {
       const { data } = await api.post('/wallet/topup/init', { amount: numericAmount });
 
-      await loadBtcpayScript(data.btcpay_url);
-
-      // When the customer closes the BTCPay window, check the payment
-      window.btcpay.onModalWillLeave(async () => {
-        try {
-          const res = await api.post('/wallet/topup/verify', { reference: data.reference });
-          if (res.status === 200 && res.data.success) {
-            onSuccess(res.data.balance);
+      window.FlutterwaveCheckout({
+        public_key: data.public_key,
+        tx_ref: data.reference,
+        amount: data.amount,
+        currency: 'USD',
+        payment_options: 'card, banktransfer, ussd',
+        customer: {
+          email: data.email,
+          name: data.name,
+        },
+        customizations: {
+          title: 'Wallet Top Up',
+          description: 'Add money to your wallet',
+        },
+        callback: async (response: any) => {
+          try {
+            const verifyRes = await api.post('/wallet/topup/verify', {
+              transaction_id: response.transaction_id,
+              reference: data.reference,
+            });
+            onSuccess(verifyRes.data.balance);
             onClose();
-          } else {
-            // 202: paid but waiting for confirmations, or not paid yet.
-            // The webhook will credit the wallet automatically once confirmed.
-            setInfo('Waiting for payment confirmation. Your balance updates automatically once confirmed.');
+          } catch {
+            setError('Payment could not be verified. Contact support if you were charged.');
           }
-        } catch (err: any) {
-          setError(
-            err.response?.data?.error ||
-              'Payment could not be verified. Contact support if you were charged.'
-          );
-        } finally {
+        },
+        onclose: () => {
           setLoading(false);
-        }
+        },
       });
-
-      window.btcpay.showInvoice(data.invoice_id);
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Something went wrong');
+      setError(err.response?.data?.error || 'Something went wrong');
       setLoading(false);
     }
   };
@@ -114,14 +105,8 @@ export default function TopUpModal({
               </p>
             )}
 
-            {info && (
-              <p className="text-amber-300 text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-                {info}
-              </p>
-            )}
-
             <div>
-              <label className="text-sm text-white/50 mb-1 block">Amount ($) — pay with Bitcoin</label>
+              <label className="text-sm text-white/50 mb-1 block">Amount ($)</label>
               <input
                 type="number"
                 placeholder="e.g. 50"
