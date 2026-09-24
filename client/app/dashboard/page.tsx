@@ -204,7 +204,7 @@ export default function DashboardPage() {
                     tx.type === "deposit" ? "text-green-400" : "text-red-400"
                   }`}
                 >
-                  {tx.type === "deposit" ? "+" : "-"}₦
+                  {tx.type === "deposit" ? "+" : "-"}$
                   {Number(tx.amount).toLocaleString()}
                 </p>
               </motion.div>

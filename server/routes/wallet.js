@@ -16,12 +16,3 @@ router.post('/webhook', express.raw({ type: 'application/json' }), webhook);
 
 module.exports = router;
 
-/*
-Run this SQL once:
-
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS invoice_id VARCHAR(100) UNIQUE;
-
-.env additions (remove the FLUTTERWAVE_* ones):
-
-
-*/

@@ -97,7 +97,7 @@ export default function WithdrawModal({
               disabled={loading}
               className="w-full bg-white text-black font-semibold py-3 rounded-xl disabled:opacity-60"
             >
-              {loading ? 'Processing...' : 'Request Withdrawal'}
+              {loading ? 'Processing...' : 'Request Withdrawal page'}
             </motion.button>
           </motion.div>
         </motion.div>
