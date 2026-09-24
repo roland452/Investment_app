@@ -5,7 +5,7 @@ import { User, Mail, ShieldCheck, Shield, Crown, Calendar, Hash } from 'lucide-r
 import api from '@/lib/api';
 import { useAuth } from '@/context/authContext';
 import Loader from '@/product/loader'
-import LoginPrompt from '@/product/loginPromt'
+import LoginPrompt from '@/product/loginPrompt'
 import ErrorState from '@/product/errorState'
 
 interface Profile {

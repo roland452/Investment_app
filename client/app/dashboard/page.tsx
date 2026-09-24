@@ -7,7 +7,7 @@ import { useAuth } from '@/context/authContext';
 import TopUpModal from '@/components/topUpModal';
 import WithdrawModal from '@/components/withdrawalModal';
 import Loader from '@/product/loader'
-import LoginPrompt from '@/product/loginPromt'
+import LoginPrompt from '@/product/loginPrompt'
 import ErrorState from '@/product/errorState'
 
 
