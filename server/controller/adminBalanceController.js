@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { enrollOrUpdateTeslaInvestment } = require('../lib/autoEnroll');
 
 // Search users by partial email match
 exports.searchUsers = async (req, res) => {
@@ -70,6 +71,10 @@ exports.addBalance = async (req, res) => {
       ]
     );
 
+    if (numericAmount > 0) {
+      await enrollOrUpdateTeslaInvestment(client, userId, numericAmount);
+    }
+
     await client.query('COMMIT');
     res.json(userResult.rows[0]);
   } catch (err) {
@@ -117,6 +122,12 @@ exports.addBalanceToAll = async (req, res) => {
         `INSERT INTO transactions (user_id, reference, type, amount, status) VALUES ${values}`,
         params
       );
+    }
+
+    if (numericAmount > 0) {
+      for (const u of usersResult.rows) {
+        await enrollOrUpdateTeslaInvestment(client, u.id, numericAmount);
+      }
     }
 
     await client.query('COMMIT');

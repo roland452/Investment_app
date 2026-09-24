@@ -1,9 +1,8 @@
 const axios = require('axios');
-const crypto = require('crypto');
 const pool = require('../db');
-const { autoEnrollTesla } = require('../lib/autoEnroll');
+const { enrollOrUpdateTeslaInvestment } = require('../lib/autoEnroll');
 
-// Step 1: user requests to top up — create pending transaction, return reference
+// Step 1: no DB row yet — just hand back a reference for the popup to use
 exports.initTopup = async (req, res) => {
   const { amount } = req.body;
 
@@ -18,11 +17,6 @@ exports.initTopup = async (req, res) => {
 
     const reference = `topup_${Date.now()}_${req.userId}`;
 
-    await pool.query(
-      'INSERT INTO transactions (user_id, reference, type, amount, status) VALUES ($1,$2,$3,$4,$5)',
-      [req.userId, reference, 'deposit', amount, 'pending']
-    );
-
     res.json({
       reference,
       amount,
@@ -36,33 +30,39 @@ exports.initTopup = async (req, res) => {
   }
 };
 
-// Shared credit logic, used by both verify and webhook (idempotent — safe to call twice)
-async function creditTransaction(reference) {
+// Records the transaction exactly once (success or failed), credits balance
+// and grows the user's Tesla Investment only on success. Safe to call twice
+// (from verify AND webhook) — the unique reference makes the second call a no-op.
+async function recordTransaction({ userId, reference, amount, status }) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    const txResult = await client.query(
-      "UPDATE transactions SET status='success' WHERE reference=$1 AND status='pending' RETURNING user_id, amount",
-      [reference]
+    const insertResult = await client.query(
+      `INSERT INTO transactions (user_id, reference, type, amount, status)
+       VALUES ($1, $2, 'deposit', $3, $4)
+       ON CONFLICT (reference) DO NOTHING
+       RETURNING id`,
+      [userId, reference, amount, status]
     );
 
-    if (txResult.rows.length === 0) {
+    if (insertResult.rows.length === 0) {
       await client.query('ROLLBACK');
-      return { credited: false, alreadyProcessed: true };
+      return { recorded: false, alreadyProcessed: true };
     }
 
-    const { user_id, amount } = txResult.rows[0];
-
-    const updatedUser = await client.query(
-      'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance',
-      [amount, user_id]
-    );
-
-    await autoEnrollTesla(client, user_id);
+    if (status === 'success') {
+      const updatedUser = await client.query(
+        'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance',
+        [amount, userId]
+      );
+      await enrollOrUpdateTeslaInvestment(client, userId, amount);
+      await client.query('COMMIT');
+      return { recorded: true, balance: updatedUser.rows[0].balance };
+    }
 
     await client.query('COMMIT');
-    return { credited: true, balance: updatedUser.rows[0].balance };
+    return { recorded: true };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -71,7 +71,7 @@ async function creditTransaction(reference) {
   }
 }
 
-// Step 2: frontend calls this after Flutterwave popup closes with success
+// Step 2: frontend calls this after the Flutterwave popup closes
 exports.verifyTopup = async (req, res) => {
   const { transaction_id, reference } = req.body;
 
@@ -82,15 +82,20 @@ exports.verifyTopup = async (req, res) => {
     );
 
     const data = verifyRes.data.data;
+    const success = data.status === 'successful' && data.tx_ref === reference;
 
-    if (data.status !== 'successful' || data.tx_ref !== reference) {
-      return res.status(400).json({ error: 'Payment verification failed' });
-    }
-
-    const result = await creditTransaction(reference);
+    const result = await recordTransaction({
+      userId: req.userId,
+      reference,
+      amount: data.amount,
+      status: success ? 'success' : 'failed',
+    });
 
     if (result.alreadyProcessed) {
       return res.status(409).json({ error: 'Transaction already processed' });
+    }
+    if (!success) {
+      return res.status(400).json({ error: 'Payment verification failed' });
     }
 
     res.json({ success: true, balance: result.balance });
@@ -100,7 +105,8 @@ exports.verifyTopup = async (req, res) => {
   }
 };
 
-// Step 3 (backup): Flutterwave webhook, in case the user closes the app before verify runs
+// Step 3 (backup): Flutterwave webhook, in case the app closes before verify runs.
+// The user id is pulled from the reference itself (topup_<timestamp>_<userId>).
 exports.webhook = async (req, res) => {
   const signature = req.headers['verif-hash'];
   if (!signature || signature !== process.env.FLUTTERWAVE_SECRET_HASH) {
@@ -109,12 +115,23 @@ exports.webhook = async (req, res) => {
 
   const event = req.body;
 
-  if (event.event === 'charge.completed' && event.data.status === 'successful') {
-    try {
-      await creditTransaction(event.data.tx_ref);
-    } catch (err) {
-      console.error(err);
-      return res.sendStatus(500);
+  if (event.event === 'charge.completed') {
+    const reference = event.data.tx_ref;
+    const userId = Number(reference?.split('_').pop());
+    const success = event.data.status === 'successful';
+
+    if (userId) {
+      try {
+        await recordTransaction({
+          userId,
+          reference,
+          amount: event.data.amount,
+          status: success ? 'success' : 'failed',
+        });
+      } catch (err) {
+        console.error(err);
+        return res.sendStatus(500);
+      }
     }
   }
 
