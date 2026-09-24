@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, PiggyBank, Plus } from 'lucide-react';
 import api from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
-import TopUpModal from '@/components/TopUpModal';
-import WithdrawModal from '@/components/WithdrawModal';
+import { useAuth } from '@/context/authContext';
+import TopUpModal from '@/components/topUpModal';
+import WithdrawModal from '@/components/withdrawalModal';
 
 interface Investment {
   id: number;
