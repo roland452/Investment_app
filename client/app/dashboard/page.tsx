@@ -199,7 +199,6 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                <div>
                 <p
                   className={`font-semibold ${
                     tx.type === "deposit" ? "text-green-400" : "text-red-400"
@@ -208,10 +207,7 @@ export default function DashboardPage() {
                   {tx.type === "deposit" ? "+" : "-"}$
                   {Number(tx.amount).toLocaleString()}
                 </p>
-                <p
-                  className={tx.status == 'pending'? 'text-yellow-400' : tx.status == 'success'? 'text-green-400' : 'text-red-400'}
-                >{tx.status}</p>
-                </div>
+                
               </motion.div>
             ))}
           </div>
