@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { User, Mail, ShieldCheck, Shield, Crown, Calendar, Hash } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/authContext';
-import Loader from '@/components/product/loader'
-import LoginPrompt from '@/components/product/loginPrompt'
-import ErrorState from '@/components/product/errorState'
+import Loader from '@/components/public/loader'
+import LoginPrompt from '@/components/public/loginPrompt'
+import ErrorState from '@/components/public/errorState'
 
 interface Profile {
   id: number;
